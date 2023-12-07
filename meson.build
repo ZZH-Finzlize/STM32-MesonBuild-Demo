@@ -1,4 +1,4 @@
-project('demo', 'c',
+project('demo', 'cpp',
     version: '0.1',
     default_options: ['warning_level=3']
 )
@@ -38,7 +38,7 @@ incs = [
 ]
 
 # peripheral drvs
-stm32_mod_path = 'Driver/src/stm32f10x_@0@.c'
+stm32_mod_path = 'Driver/src/stm32f10x_@0@.cpp'
 stm32_modules = {
     'adc': true, 'bkp': true, 'can': true, 'cec': true, 'crc': true,
     'dac': true, 'dbgmcu': true, 'dma': true, 'exti': true, 'flash': true,
@@ -50,9 +50,9 @@ stm32_modules = {
 # other support files
 stm32_std_lib_srcs = [
     # 'CMSIS/DeviceSupport/startup/startup_stm32f10x_md.s',
-    'CMSIS/DeviceSupport/system_stm32f10x.c',
-    'CMSIS/CoreSupport/core_cm3.c',
-    'Driver/src/misc.c',
+    'CMSIS/DeviceSupport/system_stm32f10x.cpp',
+    'CMSIS/CoreSupport/core_cm3.cpp',
+    'Driver/src/misc.cpp',
 ]
 
 # add enabled module files to compile list
@@ -64,43 +64,43 @@ endforeach
 
 # utils
 util_srcs = [
-    'mem_mana/mem_mana.c',
-    'bitmap/bitmap.c',
-    'usart/prints.c',
-    'ringbuf/ringbuf.c',
-    'tiny_console/tiny_console.c',
-    'tiny_console/builtin_cmds/help.c',
-    'delay/delay.c',
-    'hash/str_hash.c',
-    'map/map.c',
-    'value_ops.c',
-    'strarg.c',
+    'mem_mana/mem_mana.cpp',
+    'bitmap/bitmap.cpp',
+    'usart/prints.cpp',
+    'ringbuf/ringbuf.cpp',
+    'tiny_console/tiny_console.cpp',
+    'tiny_console/builtin_cmds/help.cpp',
+    'delay/delay.cpp',
+    'hash/str_hash.cpp',
+    'map/map.cpp',
+    'value_ops.cpp',
+    'strarg.cpp',
 ]
 
 # test cases
 test_cases_srcs = [
-    'test_frame.c',
-    'hash/demo.c',
-    'bitmap/bitmap_basic.c',
-    'bitmap/bitmap_clear.c',
-    'map/map_test_data.c',
-    'map/map_basic_test.c',
-    'map/map_detete_clear_test.c',
-    'map/map_duplcate_key.c',
+    'test_frame.cpp',
+    'hash/demo.cpp',
+    'bitmap/bitmap_basic.cpp',
+    'bitmap/bitmap_clear.cpp',
+    'map/map_test_data.cpp',
+    'map/map_basic_test.cpp',
+    'map/map_detete_clear_test.cpp',
+    'map/map_duplcate_key.cpp',
 ]
 
 # start files
-start_file_fmt = 'startup_stm32f10x_@0@.c'
+start_file_fmt = 'startup_stm32f10x_@0@.cpp'
 start_file_srcs = [
-    'stack_trace/stack_trace.c',
+    'stack_trace/stack_trace.cpp',
     'init_calls.s',
 ]
 
 # applicaton src files
 app_srcs = [
-    'app/main.c',
-    'app/console_commands.c',
-    'app/isr.c',
+    'app/main.cpp',
+    'app/console_commands.cpp',
+    'app/isr.cpp',
 ]
 
 srcs = app_srcs
