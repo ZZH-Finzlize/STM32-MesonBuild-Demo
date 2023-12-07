@@ -11,6 +11,10 @@
 
 #define DUMP_INFO_USART_SEL USART1
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern int main(void);
 extern void do_init_calls(void);
 
@@ -277,6 +281,10 @@ ISR_VEC volatile uint32_t isr_vectors[] = {
 };
 
 const uint32_t isr_vector_size = ARRAY_SIZE(isr_vectors);
+
+#ifdef __cplusplus
+}
+#endif
 
 /*
 .word	_estack

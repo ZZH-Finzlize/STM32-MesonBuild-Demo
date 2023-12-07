@@ -1,6 +1,10 @@
 #include "stm32f10x.h"
 #include "util/tiny_console/tiny_console.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 extern console_t* console;
 extern volatile uint8_t rcv_flag;
 
@@ -14,3 +18,7 @@ void USART1_IRQHandler(void)
 
     // asm volatile('')
 }
+
+#ifdef __cplusplus
+}
+#endif

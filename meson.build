@@ -174,6 +174,7 @@ c_args = [
     '-std=gnu99',
     '-fdata-sections',
     '-ffunction-sections',
+    '-std=gnu++11'
 ]
 c_args += configs
 
