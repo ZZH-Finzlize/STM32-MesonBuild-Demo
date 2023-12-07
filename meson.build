@@ -1,5 +1,7 @@
 project('demo', 'cpp',
     version: '0.1',
+    license: 'GPL-3.0',
+    license_files: 'LICENSE',
     default_options: ['warning_level=3']
 )
 
