@@ -1,7 +1,9 @@
 #ifndef __STR_HASH_H__
 #define __STR_HASH_H__
 
-#include <stdint.h>
+#include <cstdint>
+
+using std::uint32_t;
 
 typedef uint32_t (*str_hash_t)(const char *str);
 

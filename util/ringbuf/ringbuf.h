@@ -1,315 +1,256 @@
 #ifndef __RINGBUF_H__
 #define __RINGBUF_H__
 
-#include <stddef.h>
-#include <stdint.h>
+#include <cstddef>
+#include <cstdint>
 #include "util/arg_checkers.h"
-#include "util/mem_mana/mem_mana.h"
 
-#define RB_CHECK(cond, retv)          RETURN_IF(cond, retv)
-#define RB_CHECK_POINTER(ptr, retv)   RB_CHECK(NULL == ptr, retv)
-#define RB_RETURN_IF_ZERO(cond, retv) RETURN_IF_ZERO(cond, retv)
+class ringbuf_t {
+    uint32_t _wpos;
+    uint32_t _rpos;
+    uint32_t _size;
+    uint8_t* buf;
 
-typedef struct
-{
-    uint32_t wpos;
-    uint32_t rpos;
-    uint32_t size;
-    uint8_t buf[];
-} ringbuf_t;
+    class ringbuf_locked_t {
+        ringbuf_t* prb;
+        uint8_t lock;
+    };
 
-typedef struct
-{
-    ringbuf_t* prb;
-    uint8_t lock;
-} ringbuf_locked_t;
+    /**
+     *@brief create a ringbuf
+     *
+     * @param buffer - buffer address
+     * @param size - buffer size
+     */
+    ringbuf_t(uint32_t buffer_size)
+    {
+        RETURN_IF_ZERO(buffer_size, );
 
-/**
- *@brief create a ringbuf on a buffer in the specific memory pool
- *
- * @param buffer - buffer address
- * @param pool - memory pool id
- * @param size - buffer size
- */
-static inline ringbuf_t* ringbuf_create_in_pool(uint32_t buffer_size,
-                                                uint32_t pool)
-{
-    RB_RETURN_IF_ZERO(buffer_size, NULL);
+        this->buf = new uint8_t[buffer_size];
 
-    ringbuf_t* this =
-        (ringbuf_t*) memAlloc(sizeof(ringbuf_t) + buffer_size, pool);
+        CHECK_PTR(this->buf, );
 
-    RB_CHECK_POINTER(this, NULL);
+        this->_size = buffer_size;
+        this->_rpos = 0;
+        this->_wpos = 0;
+    }
 
-    this->size = buffer_size;
-    this->rpos = 0;
-    this->wpos = 0;
+    /**
+     * @brief delete a ringbuf
+     *
+     */
+    ~ringbuf_t()
+    {
+        delete[] this->buf;
+    }
 
-    return this;
-}
+    /**
+     * @brief clear a ring buf
+     *
+     * @param this - ringbuf struct pointer
+     */
+    inline void clear(void)
+    {
+        this->_rpos = this->_wpos = 0;
+    }
 
-/**
- *@brief create a ringbuf on a buffer
- *
- * @param buffer - buffer address
- * @param size - buffer size
- */
-static inline ringbuf_t* ringbuf_create(uint32_t buffer_size)
-{
-    return ringbuf_create_in_pool(buffer_size, MEMPOOL_DEFAULT);
-}
+    /**
+     *@brief check the given ringbuf is empty or not
+     *
+     * @return bool false: not empty, true: empty
+     */
+    inline bool empty(void) const
+    {
+        return this->_wpos == this->_rpos;
+    }
 
-/**
- * @brief delete a ringbuf
- *
- * @param this - ringbuf_t struct
- */
-static inline void ringbuf_delete(ringbuf_t* this)
-{
-    memFree(this);
-}
+    /**
+     * @brief check the given rinbuf is full or not
+     *
+     * @return uint8_t false: not full, true: full
+     */
+    inline bool full(void) const
+    {
+        if (0 == this->_rpos)
+            return this->_wpos == this->_size - 1;
+        else
+            return this->_wpos == this->_rpos - 1;
+    }
 
-/**
- * @brief clear a ring buf
- *
- * @param this - ringbuf struct pointer
- */
-static inline void ringbuf_clear(ringbuf_t* this)
-{
-    RB_CHECK_POINTER(this, );
+    /**
+     *@brief get ringbuf size
+     *
+     * @return uint32_t - size of ringbuf
+     */
+    inline uint32_t size(void) const
+    {
+        return this->_size;
+    }
 
-    this->rpos = this->wpos = 0;
-}
+    /**
+     * @brief get writeable address
+     *
+     * @return void* writeable pointer
+     */
+    inline void* wpos(void)
+    {
+        return &this->buf[this->_wpos];
+    }
 
-/**
- *@brief check the given ringbuf is empty or not
- *
- * @param this - ringbuf struct pointer
- * @return uint8_t 0: not empty, 1: empty
- */
-static inline uint8_t ringbuf_empty(ringbuf_t* this)
-{
-    RB_CHECK_POINTER(this, 0);
+    /**
+     * @brief get readable address
+     *
+     * @return void* readable pointer
+     */
+    inline void* rpos(void)
+    {
+        return &this->buf[this->_rpos];
+    }
 
-    return this->wpos == this->rpos;
-}
+    /**
+     * @brief get the length of continuous memory that could be read
+     *
+     * @return uint32_t length of the continuous memory
+     */
+    inline uint32_t get_seq_read_len(void) const
+    {
+        return this->_size - this->_rpos;
+    }
 
-/**
- * @brief check the given rinbuf is full or not
- *
- * @param this - ringbuf_t struct
- * @return uint8_t 0: not full, 1: full
- */
-static inline uint8_t ringbuf_full(ringbuf_t* this)
-{
-    if (0 == this->rpos)
-        return this->wpos == this->size - 1;
-    else
-        return this->wpos == this->rpos - 1;
-}
+    /**
+     * @brief get the length of continuous memory that could be write
+     *
+     * @return uint32_t length of the continuous memory
+     */
+    inline uint32_t get_seq_write_len(void) const
+    {
+        if (this->_wpos >= this->_rpos)
+            return this->_size - this->_wpos;
+        else
+            return this->_rpos - this->_wpos;
+    }
 
-/**
- *@brief get ringbuf size
- *
- * @param this - ringbuf struct pointer
- * @return uint32_t - size of ringbuf
- */
-static inline uint32_t ringbuf_size(ringbuf_t* this)
-{
-    RB_CHECK_POINTER(this, 0);
+    // w > r
+    // 0 1 2  3 4 5 6 7 8  9 10 11
+    //[][][r][][][][][][w][][][]
+    // free bytes = 12-8 = 4 + 2 - 1 = 5(size-w+r-1)
+    // available bytes = 8-2 = 6 = (w-r)
 
-    return this->size;
-}
+    // r > w
+    // 0 1 2  3 4 5 6 7 8  9 10 11
+    //[][][w][][][][][][r][][][]
+    // free bytes = 8-2-1 = 5 (r-w-1)
+    // available bytes = 12-8 = 4 + 2 = 6(size-r+w)
 
-/**
- * @brief get writeable address
- *
- * @param this - ringbuf_t struct
- * @return void* writeable pointer
- */
-static inline void* ringbuf_wpos(ringbuf_t* this)
-{
-    RB_CHECK_POINTER(this, NULL);
-    return &this->buf[this->wpos];
-}
+    // w > r
+    // 0 1 2  3 4 5 6  7 8 9 10 11
+    //[][][r][][][][w][][][][][]
+    // free bytes = 12-6 = 6 + 2 - 1 = 7(size-w+r-1)
+    // available bytes = 6-2 = 4 = (w-r)
 
-/**
- * @brief get readable address
- *
- * @param this - ringbuf_t struct
- * @return void* readable pointer
- */
-static inline void* ringbuf_rpos(ringbuf_t* this)
-{
-    RB_CHECK_POINTER(this, NULL);
-    return &this->buf[this->rpos];
-}
+    // r > w
+    // 0 1 2  3 4 5 6  7 8 9 10 11
+    //[][][w][][][][r][][][][][]
+    // free bytes = 6-2-1 = 3 (r-w-1)
+    // available bytes = 12-6 = 6 + 2 = 8(size-r+w)
 
-/**
- * @brief get the length of continuous memory that could be read
- *
- * @param this - ringbuf_t struct
- * @return uint32_t length of the continuous memory
- */
-static inline uint32_t ringbuf_get_seq_read_len(ringbuf_t* this)
-{
-    RB_CHECK_POINTER(this, 0);
-    return this->size - this->rpos;
-}
+    /**
+     *@brief get free space of a ringbuf (how many bytes could be write)
+     *
+     * @return uint32_t free bytes
+     */
+    inline uint32_t get_free_bytes(void) const
+    {
+        if (this->_wpos >= this->_rpos)
+            return this->_size - this->_wpos + this->_rpos - 1;
+        else
+            return this->_rpos - this->_wpos - 1;
+    }
 
-/**
- * @brief get the length of continuous memory that could be write
- *
- * @param this - ringbuf_t struct
- * @return uint32_t length of the continuous memory
- */
-static inline uint32_t ringbuf_get_seq_write_len(ringbuf_t* this)
-{
-    RB_CHECK_POINTER(this, 0);
+    /**
+     *@brief get available bytes (how many bytes could be read)
+     *
+     * @return uint32_t avaliable bytes
+     */
+    inline uint32_t get_available_bytes(void) const
+    {
+        if (this->_wpos >= this->_rpos)
+            return this->_wpos - this->_rpos;
+        else
+            return this->_size - this->_rpos + this->_wpos;
+    }
 
-    if (this->wpos >= this->rpos)
-        return this->size - this->wpos;
-    else
-        return this->rpos - this->wpos;
-}
+    /**
+     *@brief increase internal write pos (may be write by dma)
+     *
+     * @param num - how many bytes needs to be increase
+     */
+    inline void increase_bytes(uint32_t num)
+    {
+        this->_wpos += num;
+        this->_wpos %= this->_size;
+    }
 
-// w > r
-// 0 1 2  3 4 5 6 7 8  9 10 11
-//[][][r][][][][][][w][][][]
-// free bytes = 12-8 = 4 + 2 - 1 = 5(size-w+r-1)
-// available bytes = 8-2 = 6 = (w-r)
+    /**
+     *@brief increase internal read pos (drop some bytes, may be read by dma)
+     *
+     * @param num how many bytes needs to be drop
+     */
+    inline void drop_bytes(uint32_t num)
+    {
+        this->_rpos += num;
+        this->_rpos %= this->_size;
+    }
 
-// r > w
-// 0 1 2  3 4 5 6 7 8  9 10 11
-//[][][w][][][][][][r][][][]
-// free bytes = 8-2-1 = 5 (r-w-1)
-// available bytes = 12-8 = 4 + 2 = 6(size-r+w)
+    /**
+     *@brief get internal buffer pointer
+     *
+     * @return void* - buffer pointer
+     */
+    inline void* get_buffer(void)
+    {
+        return this->buf;
+    }
 
-// w > r
-// 0 1 2  3 4 5 6  7 8 9 10 11
-//[][][r][][][][w][][][][][]
-// free bytes = 12-6 = 6 + 2 - 1 = 7(size-w+r-1)
-// available bytes = 6-2 = 4 = (w-r)
+    /**
+     *@brief write data to ringbuf
+     *
+     * @param data - data address
+     * @param size - data length
+     * @return uint32_t - actual write length
+     */
+    uint32_t write(void* data, uint32_t size);
 
-// r > w
-// 0 1 2  3 4 5 6  7 8 9 10 11
-//[][][w][][][][r][][][][][]
-// free bytes = 6-2-1 = 3 (r-w-1)
-// available bytes = 12-6 = 6 + 2 = 8(size-r+w)
+    /**
+     *@brief read data to ringbuf
+     *
+     * @param data - data address
+     * @param size - data length
+     * @return uint32_t - actual read length
+     */
+    uint32_t read(void* data, uint32_t size);
 
-/**
- *@brief get free space of a ringbuf (how many bytes could be write)
- *
- * @param this - ringbuf struct pointer
- * @return uint32_t free bytes
- */
-static inline uint32_t ringbuf_get_free_bytes(ringbuf_t* this)
-{
-    RB_CHECK_POINTER(this, 0);
+    /**
+     *@brief write one byte to ringbuf
+     *
+     * @param byte - byte data
+     */
+    void write_byte(uint8_t byte);
 
-    if (this->wpos >= this->rpos)
-        return this->size - this->wpos + this->rpos - 1;
-    else
-        return this->rpos - this->wpos - 1;
-}
+    /**
+     *@brief read one byte from ringbuf
+     *
+     * @return uint8_t - byte data
+     */
+    uint8_t read_byte(void);
 
-/**
- *@brief get available bytes (how many bytes could be read)
- *
- * @param this - ringbuf struct pointer
- * @return uint32_t avaliable bytes
- */
-static inline uint32_t ringbuf_get_available_bytes(ringbuf_t* this)
-{
-    RB_CHECK_POINTER(this, 0);
-
-    if (this->wpos >= this->rpos)
-        return this->wpos - this->rpos;
-    else
-        return this->size - this->rpos + this->wpos;
-}
-
-/**
- *@brief increase internal write pos (may be write by dma)
- *
- * @param this - ringbuf struct pointer
- * @param num - how many bytes needs to be increase
- */
-static inline void ringbuf_increase_bytes(ringbuf_t* this, uint32_t num)
-{
-    // RB_CHECK_POINTER(this, );
-    this->wpos += num;
-    this->wpos %= this->size;
-}
-
-/**
- *@brief increase internal read pos (drop some bytes, may be read by dma)
- *
- * @param this - ringbuf struct pointer
- * @param num how many bytes needs to be drop
- */
-static inline void ringbuf_drop_bytes(ringbuf_t* this, uint32_t num)
-{
-    // RB_CHECK_POINTER(this, );
-    this->rpos += num;
-    this->rpos %= this->size;
-}
-
-/**
- *@brief get internal buffer pointer
- *
- * @param this - ringbuf struct pointer
- * @return void* - buffer pointer
- */
-static inline void* ringbuf_get_buffer(ringbuf_t* this)
-{
-    RB_CHECK_POINTER(this, 0);
-    return this->buf;
-}
-
-/**
- *@brief write data to ringbuf
- *
- * @param this - ringbuf struct pointer
- * @param data - data address
- * @param size - data length
- * @return uint32_t - actual write length
- */
-uint32_t ringbuf_write(ringbuf_t* this, void* data, uint32_t size);
-
-/**
- *@brief read data to ringbuf
- *
- * @param this - ringbuf struct pointer
- * @param data - data address
- * @param size - data length
- * @return uint32_t - actual read length
- */
-uint32_t ringbuf_read(ringbuf_t* this, void* data, uint32_t size);
-
-/**
- *@brief write one byte to ringbuf
- *
- * @param this - ringbuf struct pointer
- * @param byte - byte data
- */
-void ringbuf_write_byte(ringbuf_t* this, uint8_t byte);
-
-/**
- *@brief read one byte from ringbuf
- *
- * @param this - ringbuf struct pointer
- * @return uint8_t - byte data
- */
-uint8_t ringbuf_read_byte(ringbuf_t* this);
-
-/**
- *@brief find a specific byte data in ringbuf
- *
- * @param this - ringbuf struct pointer
- * @param byte - byte data
- * @return void* - data pos
- */
-void* ringbuf_chb(ringbuf_t* this, uint8_t byte);
+    /**
+     *@brief find a specific byte data in ringbuf
+     *
+     * @param byte - byte data
+     * @return void* - data pos
+     */
+    void* search_byte(uint8_t byte);
+};
 
 #endif // __RINGBUF_H__

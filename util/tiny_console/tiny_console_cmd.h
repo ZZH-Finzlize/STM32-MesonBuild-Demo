@@ -5,10 +5,10 @@
 #include "util/gnu_attributes.h"
 
 #define CONSOLE_CMD_DEF(name) \
-    int name(console_t* this, const int argc, const char** argv)
+    int name(console_t* console, const int argc, const char** argv)
 
 #define CONSOLE_CMD_UNUSE_ARGS \
-    (void) this;               \
+    (void) console;               \
     (void) argc;               \
     (void) argv
 
@@ -17,7 +17,7 @@
 
 #define EXPORT_CONSOLE_CMD_IN_SEC(sec, _cmd, _fn, _desc)  \
     GNU_SECTION(sec)                                      \
-    const console_cmd_desc_t __console_cmd_desc_##_fn = { \
+    const console_t::cmd_desc_t __console_cmd_desc_##_fn = { \
         .cmd = _cmd,                                      \
         .desc = _desc,                                    \
         .fn = _fn,                                        \

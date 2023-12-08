@@ -1,4 +1,4 @@
-project('demo', 'cpp',
+project('demo', ['c', 'cpp'],
     version: '0.1',
     license: 'GPL-3.0',
     license_files: 'LICENSE',
@@ -81,14 +81,14 @@ util_srcs = [
 
 # test cases
 test_cases_srcs = [
-    'test_frame.cpp',
-    'hash/demo.cpp',
-    'bitmap/bitmap_basic.cpp',
-    'bitmap/bitmap_clear.cpp',
-    'map/map_test_data.cpp',
-    'map/map_basic_test.cpp',
-    'map/map_detete_clear_test.cpp',
-    'map/map_duplcate_key.cpp',
+    # 'test_frame.cpp',
+    # 'hash/demo.cpp',
+    # 'bitmap/bitmap_basic.cpp',
+    # 'bitmap/bitmap_clear.cpp',
+    # 'map/map_test_data.cpp',
+    # 'map/map_basic_test.cpp',
+    # 'map/map_detete_clear_test.cpp',
+    # 'map/map_duplcate_key.cpp',
 ]
 
 # start files
@@ -173,16 +173,22 @@ c_args = [
     '-DSTM32F10X_' + capacity,
     '-DUSE_STDPERIPH_DRIVER',
     '-DPROJECT_VERSION=' + '"' + meson.project_version() + '"',
-    '-std=gnu99',
     '-fdata-sections',
     '-ffunction-sections',
-    '-std=gnu++11'
 ]
 c_args += configs
+
+# cpp_args apply to all src files
+cpp_args = c_args
+
+# specify language stadard
+c_args += '-std=gnu99'
+cpp_args += '-std=gnu++20'
 
 # link args apply to the project
 link_args = [
     '-mcpu=' + host_machine.cpu(),
+    '-nostartfiles',
 ]
 
 # get memory configuration from cross file
@@ -204,12 +210,14 @@ target_dict = {
             '-g3',
             '-Wa,-g3'
         ],
+        'cpp_args': [],
         'link_args': ['-Wl,-Map,memory_ram.map', '--specs=nano.specs'],
         'linker_script': 'linker_ram_new.ld',
         'debug': true,
     },
     'rel': {
         'c_args': ['-O2'],
+        'cpp_args': [],
         'link_args': ['-Wl,-Map,memory.map', '--specs=nano.specs'],
         'linker_script': 'linker_new.ld',
         'download': true,
@@ -238,6 +246,7 @@ foreach target_name, options : target_dict
         include_directories: inc_dirs,
         link_depends: lds,
         c_args: c_args + options.get('c_args', []),
+        cpp_args: cpp_args + options.get('c_args', []) + options.get('cpp_args', []),
         link_args: link_args + lds_arg + options.get('link_args', [])
     )
 

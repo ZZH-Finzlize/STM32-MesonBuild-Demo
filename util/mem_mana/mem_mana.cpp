@@ -142,3 +142,13 @@ bool memIsCleanAll(void)
 
     return true;
 }
+
+void* operator new(size_t size)
+{
+    return memAlloc(size, 0);
+}
+
+void operator delete(void* mem)
+{
+    memFree(mem);
+}

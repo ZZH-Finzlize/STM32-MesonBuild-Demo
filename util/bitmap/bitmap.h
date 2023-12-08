@@ -1,126 +1,116 @@
 #ifndef __BIT_MAP_H__
 #define __BIT_MAP_H__
 
-#include <stdint.h>
-#include <string.h>
-#include <stdbool.h>
+#include <cstdint>
+#include <cstring>
 #include "util/iterators.h"
 #include "util/arg_checkers.h"
-#include "util/mem_mana/mem_mana.h"
 
-#define BITMAP_CHECK_MAP(map, retv) \
-    CHECK_PTR(map, retv);           \
-    CHECK_PTR(map->buf, retv)
 
-typedef struct
-{
+#define BITMAP_CHECK_MAP(retv) CHECK_PTR(this->buf, retv)
+
+class bitmap_t {
+private:
     uint32_t len;
-    uint32_t buf[];
-} bitmap_t;
+    uint32_t* buf;
 
-/**
- * @brief create a bit map in the specific memory pool
- *
- * @param max_num - maximun value
- * @param pool - memory pool id
- * @return bitmap_t* - created bitmap
- */
-bitmap_t* bitmap_create_in_pool(uint32_t max_num, uint32_t pool);
+public:
+    /**
+     * @brief create a bit map in the specific memory pool
+     *
+     * @param max_num - maximun value
+     * @param pool - memory pool id
+     */
+    bitmap_t(uint32_t max_num);
 
-/**
- * @brief create a bit map
- *
- * @param max_num - maximun value
- * @return bitmap_t* - created bitmap
- */
-static inline bitmap_t* bitmap_create(uint32_t max_num)
-{
-    return bitmap_create_in_pool(max_num, MEMPOOL_DEFAULT);
-}
+    /**
+     * @brief delete a bitmap
+     *
+     */
+    ~bitmap_t()
+    {
+        delete[] this->buf;
+    }
 
-/**
- * @brief delete a bitmap
- *
- * @param map
- */
-static inline void bitmap_delete(bitmap_t* map)
-{
-    memFree(map);
-}
+    inline uint32_t size(void) const
+    {
+        return this->len;
+    }
 
-/**
- * @brief clear a bitmap
- *
- * @param map - bitmap_t struct
- */
-static inline void bitmap_clear(bitmap_t* map)
-{
-    BITMAP_CHECK_MAP(map, );
+    inline uint32_t length(void) const
+    {
+        return this->size();
+    }
 
-    memset(map->buf, 0, map->len * sizeof(*map->buf));
-}
+    /**
+     * @brief clear a bitmap
+     *
+     */
 
-/**
- * @brief save a value in given bitmap
- *
- * @param map - bitmap_t struct
- * @param value - value to be saved
- */
-static inline void bitmap_save(bitmap_t* map, uint32_t value)
-{
-    BITMAP_CHECK_MAP(map, );
+    inline void clear(void)
+    {
+        BITMAP_CHECK_MAP();
+        memset(this->buf, 0, this->len * sizeof(*this->buf));
+    }
 
-    uint32_t unit_index = value / (sizeof(*map->buf) * 8);
-    uint32_t bit_index = value % (sizeof(*map->buf) * 8);
+    /**
+     * @brief save a value in given bitmap
+     *
+     * @param value - value to be saved
+     */
+    inline void save(uint32_t value)
+    {
+        BITMAP_CHECK_MAP();
 
-    if (unit_index < map->len)
-        map->buf[unit_index] |= 1 << bit_index;
-}
+        uint32_t unit_index = value / (sizeof(*this->buf) * 8);
+        uint32_t bit_index = value % (sizeof(*this->buf) * 8);
 
-/**
- * @brief delete a value from the given bitmap
- *
- * @param map - bitmap_t struct
- * @param value - value to be deleted
- */
-static inline void bitmap_drop(bitmap_t* map, uint32_t value)
-{
-    BITMAP_CHECK_MAP(map, );
+        if (unit_index < this->len)
+            this->buf[unit_index] |= 1 << bit_index;
+    }
 
-    uint32_t unit_index = value / (sizeof(*map->buf) * 8);
-    uint32_t bit_index = value % (sizeof(*map->buf) * 8);
+    /**
+     * @brief delete a value from the given bitmap
+     *
+     * @param value - value to be deleted
+     */
+    inline void drop(uint32_t value)
+    {
+        BITMAP_CHECK_MAP();
 
-    if (unit_index < map->len)
-        map->buf[unit_index] &= ~(1 << bit_index);
-}
+        uint32_t unit_index = value / (sizeof(*this->buf) * 8);
+        uint32_t bit_index = value % (sizeof(*this->buf) * 8);
 
-/**
- * @brief check the given value is exist in the bitmap or not
- *
- * @param map - bitmap_t struct
- * @param value - value to be check
- * @return bool true: exist, false: not exsit
- */
-static inline bool bitmap_check(bitmap_t* map, uint32_t value)
-{
-    BITMAP_CHECK_MAP(map, 0);
+        if (unit_index < this->len)
+            this->buf[unit_index] &= ~(1 << bit_index);
+    }
 
-    uint32_t unit_index = value / (sizeof(*map->buf) * 8);
-    uint32_t bit_index = value % (sizeof(*map->buf) * 8);
-    uint32_t bit_mask = 1 << bit_index;
+    /**
+     * @brief check the given value is exist in the bitmap or not
+     *
+     * @param value - value to be check
+     * @return bool true: exist, false: not exsit
+     */
+    inline bool check(uint32_t value)
+    {
+        BITMAP_CHECK_MAP(0);
 
-    if (unit_index < map->len)
-        return (map->buf[unit_index] & bit_mask) == bit_mask;
+        uint32_t unit_index = value / (sizeof(*this->buf) * 8);
+        uint32_t bit_index = value % (sizeof(*this->buf) * 8);
+        uint32_t bit_mask = 1 << bit_index;
 
-    return 0;
-}
+        if (unit_index < this->len)
+            return (this->buf[unit_index] & bit_mask) == bit_mask;
 
-/**
- * @brief find the first value in given bitmap
- *
- * @param map - bitmap_t struct
- * @return uint32_t first freed value
- */
-uint32_t bitmap_find_first_free(bitmap_t* map);
+        return 0;
+    }
+
+    /**
+     * @brief find the first value in given bitmap
+     *
+     * @return uint32_t first freed value
+     */
+    uint32_t find_first_free(void);
+};
 
 #endif // __BIT_MAP_H__

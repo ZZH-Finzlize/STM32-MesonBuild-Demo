@@ -58,11 +58,11 @@ void usart_init(void)
 {
     USART_InitTypeDef init_param = {
         .USART_BaudRate = 115200,
-        .USART_HardwareFlowControl = USART_HardwareFlowControl_None,
-        .USART_Mode = USART_Mode_Tx | USART_Mode_Rx,
-        .USART_Parity = USART_Parity_No,
-        .USART_StopBits = USART_StopBits_1,
         .USART_WordLength = USART_WordLength_8b,
+        .USART_StopBits = USART_StopBits_1,
+        .USART_Parity = USART_Parity_No,
+        .USART_Mode = USART_Mode_Tx | USART_Mode_Rx,
+        .USART_HardwareFlowControl = USART_HardwareFlowControl_None,
     };
 
     USART_Init(USART1, &init_param);
@@ -75,9 +75,9 @@ void nvic_init()
 
     NVIC_InitTypeDef init_param = {
         .NVIC_IRQChannel = USART1_IRQn,
-        .NVIC_IRQChannelCmd = ENABLE,
         .NVIC_IRQChannelPreemptionPriority = 12,
         .NVIC_IRQChannelSubPriority = 14,
+        .NVIC_IRQChannelCmd = ENABLE,
     };
 
     NVIC_Init(&init_param);
@@ -85,9 +85,9 @@ void nvic_init()
     USART_ITConfig(USART1, USART_IT_RXNE, ENABLE);
 }
 
-int console_output(console_t* this, const char* str, uint32_t len)
+int console_output(console_t* console, const char* str, uint32_t len)
 {
-    (void) this;
+    (void) console;
 
     for (uint32_t i = 0; i < len; i++) {
         while (RESET == USART_GetFlagStatus(USART1, USART_FLAG_TC))
@@ -108,14 +108,14 @@ int main()
     // run_all_demo();
     // run_all_testcases(NULL);
 
-    console = console_create(64, console_output, "root@stm32");
-    console_display_prefix(console);
-    console_flush(console);
+    console = new console_t(64, console_output, "root@stm32");
+    console->display_prefix();
+    console->flush();
 
     while (1) {
         if (1 == rcv_flag) {
             rcv_flag = 0;
-            console_update(console);
+            console->update();
         }
     }
 

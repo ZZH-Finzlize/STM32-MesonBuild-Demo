@@ -19,8 +19,8 @@
 #define GOTO_IF_ZERO(cond, labal)         GOTO_IF_VALUE(cond, 0, labal)
 #define GOTO_IF_NZERO(cond, labal)        GOTO_IF_NVALUE(cond, 0, labal)
 
-#define CHECK_PTR(ptr, retv)              RETURN_IF(NULL == (ptr), retv)
-#define CHECK_PTR_GOTO(ptr, labal)        GOTO_IF(NULL == (ptr), labal)
+#define CHECK_PTR(ptr, retv)              RETURN_IF(nullptr == (ptr), retv)
+#define CHECK_PTR_GOTO(ptr, labal)        GOTO_IF(nullptr == (ptr), labal)
 
 #define CHECK_IN_OPEN_RANGE(val, left, right, retv) \
     RETURN_IF((val) < (right) && (val) > (left), retv)

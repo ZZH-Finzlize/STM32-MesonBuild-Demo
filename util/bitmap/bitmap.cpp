@@ -1,30 +1,27 @@
 #include "bitmap.h"
 #include "util/value_ops.h"
 
-bitmap_t* bitmap_create_in_pool(uint32_t max_num, uint32_t pool)
+bitmap_t::bitmap_t(uint32_t max_num)
 {
-    RETURN_IF_ZERO(max_num, NULL);
+    RETURN_IF_ZERO(max_num, );
 
-    uint32_t max_num_aligned = (max_num + 31) & ~31;
-    bitmap_t* map =
-        (bitmap_t*) memAlloc(sizeof(bitmap_t) + max_num_aligned / 8, pool);
-    uint32_t unit_num = max_num / (sizeof(*map->buf) * 8);
+    // uint32_t max_num_aligned = (max_num + 31) & ~31;
+    uint32_t unit_num = max_num / (sizeof(*this->buf) * 8);
+    this->buf = new uint32_t[unit_num];
 
-    CHECK_PTR(map, NULL);
+    CHECK_PTR(this->buf, );
 
-    map->len = unit_num;
-
-    return map;
+    this->len = unit_num;
 }
 
-uint32_t bitmap_find_first_free(bitmap_t* map)
+uint32_t bitmap_t::find_first_free(void)
 {
-    BITMAP_CHECK_MAP(map, UINT32_MAX);
+    BITMAP_CHECK_MAP(UINT32_MAX);
 
-    const uint32_t bitmap_value_bits = sizeof(*map->buf) * 8;
+    const uint32_t bitmap_value_bits = sizeof(*this->buf) * 8;
 
-    for (uint32_t i = 0; i < map->len; i++) {
-        uint32_t value = map->buf[i];
+    for (uint32_t i = 0; i < this->len; i++) {
+        uint32_t value = this->buf[i];
 
         // ff0 algorithm - O(1) efficiency
         if (value < UINT32_MAX) // has free bits

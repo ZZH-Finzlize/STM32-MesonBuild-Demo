@@ -2,7 +2,7 @@
 #include "stm32f10x.h"
 #include "test_frame.h"
 #include "util/iterators.h"
-#include "util/mem_mana/mem_mana.h"
+
 #include "util/usart/prints.h"
 
 LINKER_SYMBOL_TYPE(__stest_cases, __test_case_info_t);

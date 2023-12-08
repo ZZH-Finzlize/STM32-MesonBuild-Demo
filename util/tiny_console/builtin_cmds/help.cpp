@@ -2,26 +2,24 @@
 
 console_t* cur_con = NULL;
 
-static void iter_cb(map_key_t key, map_value_t value)
-{
-    CHECK_PTR(cur_con, );
-    (void) key;
-
-    console_cmd_desc_t* desc = (console_cmd_desc_t*) value;
-
-    console_send_str(cur_con, desc->cmd);
-    console_send_str(cur_con, " - ");
-    console_send_str(cur_con, desc->desc);
-    console_send_str(cur_con, "\r\n\r\n");
-}
-
 CONSOLE_CMD_DEF(help)
 {
     CONSOLE_CMD_UNUSE_ARGS;
 
-    cur_con = this;
+    cur_con = console;
 
-    map_foreach(this->command_table, iter_cb);
+    console->get_command_table()->foreach (
+        [](map_t::key_t key, map_t::value_t value) {
+            CHECK_PTR(cur_con, );
+            (void) key;
+
+            console_t::cmd_desc_t* desc = (console_t::cmd_desc_t*) value;
+
+            cur_con->send_str(desc->cmd);
+            cur_con->send_str(" - ");
+            cur_con->send_str(desc->desc);
+            cur_con->send_str("\r\n\r\n");
+        });
 
     return 0;
 }

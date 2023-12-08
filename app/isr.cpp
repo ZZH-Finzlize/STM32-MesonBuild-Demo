@@ -12,7 +12,7 @@ void USART1_IRQHandler(void)
 {
     if (USART_GetITStatus(USART1, USART_IT_RXNE)) {
         USART_ClearITPendingBit(USART1, USART_IT_RXNE);
-        console_input_char(console, USART_ReceiveData(USART1));
+        console->input_char(USART_ReceiveData(USART1));
         rcv_flag = 1;
     }
 
