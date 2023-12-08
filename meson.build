@@ -81,12 +81,12 @@ util_srcs = [
 
 # test cases
 test_cases_srcs = [
-    # 'test_frame.cpp',
-    # 'hash/demo.cpp',
-    # 'bitmap/bitmap_basic.cpp',
-    # 'bitmap/bitmap_clear.cpp',
-    # 'map/map_test_data.cpp',
-    # 'map/map_basic_test.cpp',
+    'test_frame.cpp',
+    'hash/demo.cpp',
+    'bitmap/bitmap_basic.cpp',
+    'bitmap/bitmap_clear.cpp',
+    'map/map_test_data.cpp',
+    'map/map_basic_test.cpp',
     # 'map/map_detete_clear_test.cpp',
     # 'map/map_duplcate_key.cpp',
 ]
@@ -175,6 +175,7 @@ c_args = [
     '-DPROJECT_VERSION=' + '"' + meson.project_version() + '"',
     '-fdata-sections',
     '-ffunction-sections',
+    '-Wall', '-Wextra',
 ]
 c_args += configs
 

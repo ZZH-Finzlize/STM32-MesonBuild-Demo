@@ -42,6 +42,9 @@
 
 #endif
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* ###################  Compiler specific Intrinsics  ########################### */
 
@@ -781,4 +784,8 @@ uint32_t __STREXW(uint32_t value, uint32_t *addr)
  * Including the CMSIS ones.
  */
 
+#endif
+
+#ifdef __cplusplus
+}
 #endif

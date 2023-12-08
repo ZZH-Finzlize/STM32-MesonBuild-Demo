@@ -67,6 +67,13 @@ SECTIONS
         PROVIDE(__erodata = .);
     } > FLASH
 
+    .ARM.exidx : {
+        PROVIDE_HIDDEN (__exidx_start = .);
+        *(.ARM.exidx*)
+        *(.gnu.linkonce.armexidx.*)
+        PROVIDE_HIDDEN (__exidx_end = .);
+    } > FLASH
+
     .stack (NOLOAD): {
         PROVIDE(__estack = .);
         /* stack size 0x400 */

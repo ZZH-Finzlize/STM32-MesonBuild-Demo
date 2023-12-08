@@ -10,40 +10,38 @@ static int bitmap_clear_test(void *arg)
 
     uint8_t test_data[BITMAP_TEST_DATA_SIZE];
 
-    srand(rand());
+    std::srand(std::rand());
 
     FOR_ARRAY_I (test_data) {
-        test_data[i] = rand() % 128;
+        test_data[i] = std::rand() % 128;
     }
 
-    bitmap_t *bitmap = bitmap_create(128);
-    CHECK_PTR_GOTO(bitmap, bitmap_err);
+    bitmap_t bitmap(128);
+    GOTO_IF(0 == bitmap.length(), bitmap_err);
 
     // testcase starts here
     retv = 0;
 
     FOR_ARRAY_I (test_data) {
-        bitmap_save(bitmap, test_data[i]);
+        bitmap.save(test_data[i]);
     }
 
     FOR_ARRAY_I (test_data) {
-        GOTO_IF_ZERO(bitmap_check(bitmap, test_data[i]), error_exit);
+        GOTO_IF_ZERO(bitmap.check(test_data[i]), error_exit);
     }
 
-    bitmap_clear(bitmap);
+    bitmap.clear();
 
     FOR_ARRAY_I (test_data) {
-        GOTO_IF_NZERO(bitmap_check(bitmap, test_data[i]), error_exit);
+        GOTO_IF_NZERO(bitmap.check(test_data[i]), error_exit);
     }
 
-clean_exit:
-    bitmap_delete(bitmap);
 bitmap_err:
     return retv;
 
 error_exit:
     retv = -EINVAL;
-    goto clean_exit;
+    goto bitmap_err;
 }
 
 EXPORT_TEST_CASE(bitmap_clear_test);

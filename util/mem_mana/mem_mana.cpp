@@ -5,6 +5,30 @@
 #include "util/container_of.h"
 #include "util/linker_tools.h"
 
+typedef struct __MemBlock
+{
+    struct __MemBlock *next, *prev;
+    uint32_t size;
+    uint8_t isFree;
+    // uint32_t mem[];
+} MemBlock_t, *pMemBlock_t;
+
+typedef struct
+{
+    MemBlock_t* const memStart;
+    const void* const memEnd;
+    uint32_t availableSize;
+} MemPool_t, *pMemPool_t;
+
+#define MemEnd(mem) (mem + ARRAY_SIZE(mem))
+#define ArrayMem(arr)                     \
+    {                                     \
+        (pMemBlock_t) arr, MemEnd(arr), 0 \
+    }
+
+// void* memAlloc(size_t size, const uint32_t pool);
+// void memFree(void* pMem);
+
 static uint32_t __mem0__[CONFIG_DEFAULT_POOL_SIZE * 1024 / 4];
 
 #if CONFIG_ENABLE_TEST_CASES == 1
@@ -12,9 +36,9 @@ static uint32_t __mem_test_case__[CONFIG_TESTCASE_POOL_SIZE * 1024 / 4];
 #endif
 
 MemPool_t __MemPools__[] = {
-    PoolByArray(MEMPOOL_DEFAULT, __mem0__),
+    ArrayMem(__mem0__),
 #if CONFIG_ENABLE_TEST_CASES == 1
-    PoolByArray(MEMPOOL_TESTCASE, __mem_test_case__),
+    ArrayMem(__mem_test_case__),
 #endif
 };
 
@@ -36,13 +60,13 @@ void memInit(void)
 
 EXPORT_INIT_FUNC(memInit, 9);
 
-void* memAlloc(size_t size, const uint32_t pool)
+void* memAlloc(size_t size, const mem_pool_t pool)
 {
     if (size == 0)
-        return NULL;
+        return nullptr;
 
     if (pool >= ARRAY_SIZE(__MemPools__))
-        return NULL;
+        return nullptr;
 
     pMemBlock_t pMemHeader = __MemPools__[pool].memStart;
     // byte align
@@ -52,7 +76,7 @@ void* memAlloc(size_t size, const uint32_t pool)
     size += sizeof(MemBlock_t);
     size_t sizeReq = size + sizeof(MemBlock_t);
 
-    while (pMemHeader != NULL) {
+    while (pMemHeader != nullptr) {
         // must greater than, otherwise the next block dosen't have memory
         if (pMemHeader->isFree && pMemHeader->size > sizeReq) {
             // setup a new block after the allocated block
@@ -60,7 +84,7 @@ void* memAlloc(size_t size, const uint32_t pool)
             newHeader->isFree = true;
             newHeader->size = pMemHeader->size - sizeReq;
             newHeader->prev = pMemHeader;
-            newHeader->next = NULL;
+            newHeader->next = nullptr;
 
             pMemHeader->next = newHeader;
             pMemHeader->size = sizeReq;
@@ -68,25 +92,26 @@ void* memAlloc(size_t size, const uint32_t pool)
 
             __MemPools__[pool].availableSize -= sizeReq;
 
-            return (char*) pMemHeader->mem;
+            return reinterpret_cast<char*>(pMemHeader + 1);
         } else {
             pMemHeader = pMemHeader->next;
         }
     }
-    return NULL;
+    return nullptr;
 }
 
 void memFree(void* pMem)
 {
-    if (NULL == pMem)
+    if (nullptr == pMem)
         return;
 
-    pMemBlock_t block = container_of(pMem, MemBlock_t, mem);
+    pMem = (void*) ((size_t) pMem - sizeof(MemBlock_t));
+    pMemBlock_t block = static_cast<pMemBlock_t>(pMem);
 
-    if (block == NULL || block->isFree)
+    if (block == nullptr || block->isFree)
         return;
 
-    pMemPool_t pool = NULL;
+    pMemPool_t pool = nullptr;
 
     ITER_ARRAY (pMember, __MemPools__) {
         if (pMem < (void*) pMember->memEnd
@@ -96,7 +121,7 @@ void memFree(void* pMem)
         }
     }
 
-    if (pool == NULL)
+    if (pool == nullptr)
         return;
 
     pool->availableSize += block->size;
@@ -122,7 +147,7 @@ void memFree(void* pMem)
     }
 }
 
-bool memIsClean(const uint32_t pool)
+bool memIsClean(const mem_pool_t pool)
 {
     MemPool_t* pMember = &__MemPools__[pool];
     uint32_t currentAvailableSize = 0;
@@ -136,19 +161,51 @@ bool memIsClean(const uint32_t pool)
 bool memIsCleanAll(void)
 {
     FOR_ARRAY_I (__MemPools__) {
-        if (false == memIsClean(i))
+        if (false == memIsClean(static_cast<mem_pool_t>(i)))
             return false;
     }
 
     return true;
 }
 
-void* operator new(size_t size)
+// void* operator new(size_t size)
+// {
+//     return memAlloc(size, mem_pool_t::default_pool);
+// }
+
+void* operator new(size_t size, mem_pool_t pool)
 {
-    return memAlloc(size, 0);
+    return memAlloc(size, pool);
+}
+
+// void* operator new[](size_t size)
+// {
+//     return memAlloc(size, mem_pool_t::default_pool);
+// }
+
+void* operator new[](size_t size, mem_pool_t pool)
+{
+    return memAlloc(size, pool);
 }
 
 void operator delete(void* mem)
 {
+    memFree(mem);
+}
+
+void operator delete[](void* mem)
+{
+    memFree(mem);
+}
+
+void operator delete(void* mem, unsigned int t)
+{
+    (void) t;
+    memFree(mem);
+}
+
+void operator delete[](void* mem, unsigned int t)
+{
+    (void) t;
     memFree(mem);
 }

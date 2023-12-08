@@ -1,7 +1,9 @@
 #ifndef __MEM_POOLS_H__
 #define __MEM_POOLS_H__
 
-#define MEMPOOL_DEFAULT  0
-#define MEMPOOL_TESTCASE 1
+enum mem_pool_t {
+    default_pool = 0,
+    testcase_pool
+};
 
 #endif // __MEM_POOLS_H__

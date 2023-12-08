@@ -31,7 +31,7 @@
     EXPORT_CONSOLE_CMD_IN_SEC(CONSOLE_BUILTIN_CMD_SECTION, cmd, fn, desc)
 #else
 #define EXPORT_CONSOLE_BUILTIN_CMD(cmd, fn, desc) \
-    GNU_UNUSED console_cmd_desc_t* __ptr_to_##fn = NULL
+    GNU_UNUSED console_t::cmd_desc_t* __ptr_to_##fn = NULL
 #endif
 
 #endif // __TINY_CONSOLE_CMD_H__

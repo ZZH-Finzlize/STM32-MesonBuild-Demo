@@ -27,6 +27,7 @@ map_t::item_t* map_t::search_node(item_list_t* item_list, key_t key)
 }
 
 map_t::map_t(uint32_t mod_value, str_hash_t hash_cb)
+    : mod_value(0), hash(nullptr)
 {
     RETURN_IF(mod_value < 2, );
     CHECK_PTR(hash_cb, );

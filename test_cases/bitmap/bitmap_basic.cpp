@@ -10,10 +10,10 @@ static int bitmap_basic_test(void *arg)
 
     uint8_t test_data[BITMAP_TEST_DATA_SIZE];
 
-    srand(rand());
+    std::srand(std::rand());
 
     FOR_ARRAY_I (test_data) {
-        test_data[i] = rand() % 128;
+        test_data[i] = std::rand() % 128;
     }
 
     bitmap_t bitmap(128);

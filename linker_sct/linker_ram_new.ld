@@ -76,6 +76,13 @@ SECTIONS
         PROVIDE(__erodata = .);
     } > RAM
 
+    .ARM.exidx : {
+        PROVIDE_HIDDEN (__exidx_start = .);
+        *(.ARM.exidx*)
+        *(.gnu.linkonce.armexidx.*)
+        PROVIDE_HIDDEN (__exidx_end = .);
+    } > RAM
+
     .data : {
         . = ALIGN(4);
         PROVIDE(__sdata = .);

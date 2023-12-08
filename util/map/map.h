@@ -54,6 +54,11 @@ public:
         delete[] this->items;
     }
 
+    inline uint32_t length(void) const
+    {
+        return this->mod_value * (nullptr != this->items);
+    }
+
     /**
      * @brief insert a key-value pair into a map
      *
