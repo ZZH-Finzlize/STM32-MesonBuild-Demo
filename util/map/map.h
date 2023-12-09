@@ -44,7 +44,7 @@ public:
     @param mod_value - should be a prime number to reduce hash conflict
     @param hash_cb - hash method
     */
-    map_t(uint32_t mod_value, str_hash_t hash_cb, mem_pool_t pool);
+    map_t(uint32_t mod_value, str_hash_t hash_cb, mem_pool_t pool = default_pool);
 
     /**
      * @brief delete a map

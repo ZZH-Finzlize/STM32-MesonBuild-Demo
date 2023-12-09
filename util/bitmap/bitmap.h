@@ -23,7 +23,7 @@ public:
      * @param max_num - maximun value
      * @param pool - memory pool id
      */
-    bitmap_t(uint32_t max_num, mem_pool_t pool);
+    bitmap_t(uint32_t max_num, mem_pool_t pool = default_pool);
 
     /**
      * @brief delete a bitmap
