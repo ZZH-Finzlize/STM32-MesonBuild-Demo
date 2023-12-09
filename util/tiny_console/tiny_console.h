@@ -37,7 +37,7 @@ public:
 private:
     const char *prefix, *cwd;
     uint32_t buffer_size;
-    // uint32_t mem_pool;
+    mem_pool_t pool;
     state_t current_state;
     int last_ret_v;
 
@@ -53,7 +53,8 @@ private:
     void update_033(char ch);
 
 public:
-    console_t(uint32_t buffer_size, out_t output_fn, const char* prefix);
+    console_t(uint32_t buffer_size, out_t output_fn, const char* prefix,
+              mem_pool_t pool = default_pool);
 
     ~console_t()
     {
@@ -77,6 +78,8 @@ public:
 
     int println(const char* fmt, ...) GNU_PRINTF(2, 3)
     {
+        (void) fmt;
+        return 0;
     }
 
     inline int send_strln(const char* str)

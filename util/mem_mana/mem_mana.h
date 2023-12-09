@@ -9,7 +9,10 @@
 bool memIsClean(const mem_pool_t pool);
 bool memIsCleanAll(void);
 
-void* operator new(size_t size, mem_pool_t pool = default_pool);
-void* operator new[](size_t size, mem_pool_t pool = default_pool);
+void* operator new(size_t size);
+void* operator new[](size_t size);
+
+void* operator new(size_t size, mem_pool_t pool);
+void* operator new[](size_t size, mem_pool_t pool);
 
 #endif // __MEM_MANA_H__

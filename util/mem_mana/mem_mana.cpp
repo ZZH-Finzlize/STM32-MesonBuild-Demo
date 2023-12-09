@@ -168,20 +168,20 @@ bool memIsCleanAll(void)
     return true;
 }
 
-// void* operator new(size_t size)
-// {
-//     return memAlloc(size, mem_pool_t::default_pool);
-// }
+void* operator new(size_t size)
+{
+    return memAlloc(size, mem_pool_t::default_pool);
+}
 
 void* operator new(size_t size, mem_pool_t pool)
 {
     return memAlloc(size, pool);
 }
 
-// void* operator new[](size_t size)
-// {
-//     return memAlloc(size, mem_pool_t::default_pool);
-// }
+void* operator new[](size_t size)
+{
+    return memAlloc(size, mem_pool_t::default_pool);
+}
 
 void* operator new[](size_t size, mem_pool_t pool)
 {

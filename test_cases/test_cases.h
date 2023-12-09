@@ -7,9 +7,9 @@
 
 #include "hash/hash_all_test.h"
 
-#ifndef CONFIG_TEST_CASE_MEMPOOLS
-#define CONFIG_TEST_CASE_MEMPOOLS mem_pool_t::testcase_pool
-#endif // CONFIG_TEST_CASE_MEMPOOLS
+#ifndef CONFIG_TEST_CASE_MEMPOOL
+#define CONFIG_TEST_CASE_MEMPOOL mem_pool_t::testcase_pool
+#endif // CONFIG_TEST_CASE_MEMPOOL
 
 #include <cstdlib>
 

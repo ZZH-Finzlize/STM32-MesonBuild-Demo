@@ -26,7 +26,9 @@ void clock_init(void)
 
 void gpio_init(void)
 {
-    GPIO_InitTypeDef init_param = {.GPIO_Speed = GPIO_Speed_50MHz};
+    GPIO_InitTypeDef init_param;
+
+    init_param.GPIO_Speed = GPIO_Speed_50MHz;
 
     GPIO_DeInit(GPIOA);
     GPIO_DeInit(GPIOB);

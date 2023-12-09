@@ -26,13 +26,13 @@ map_t::item_t* map_t::search_node(item_list_t* item_list, key_t key)
     return NULL;
 }
 
-map_t::map_t(uint32_t mod_value, str_hash_t hash_cb)
-    : mod_value(0), hash(nullptr)
+map_t::map_t(uint32_t mod_value, str_hash_t hash_cb, mem_pool_t pool)
+    : mod_value(0), hash(nullptr), pool(pool)
 {
     RETURN_IF(mod_value < 2, );
     CHECK_PTR(hash_cb, );
 
-    this->items = new item_list_t[sizeof(item_list_t) * mod_value];
+    this->items = new (this->pool) item_list_t[sizeof(item_list_t) * mod_value];
     CHECK_PTR(this->items, );
 
     this->mod_value = mod_value;
@@ -62,7 +62,7 @@ int map_t::insert(key_t key, value_t value)
             item_list->item.key = new_key;
             item_list->item.value = value;
         } else { // from second node start, we need to alloc new node
-            item_t* new_item = new item_t;
+            item_t* new_item = new (this->pool) item_t;
             CHECK_PTR(new_item, -ENOMEM);
             new_item->key = new_key;
             new_item->value = value;

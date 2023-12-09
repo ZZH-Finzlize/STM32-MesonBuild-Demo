@@ -16,7 +16,7 @@ static int bitmap_basic_test(void *arg)
         test_data[i] = std::rand() % 128;
     }
 
-    bitmap_t bitmap(128);
+    bitmap_t bitmap(128, CONFIG_TEST_CASE_MEMPOOL);
     GOTO_IF(0 == bitmap.length(), bitmap_err);
 
     // testcase starts here

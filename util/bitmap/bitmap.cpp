@@ -1,13 +1,14 @@
 #include "bitmap.h"
 #include "util/value_ops.h"
 
-bitmap_t::bitmap_t(uint32_t max_num)
+bitmap_t::bitmap_t(uint32_t max_num, mem_pool_t pool)
+    : len(0), buf(nullptr), pool(pool)
 {
     RETURN_IF_ZERO(max_num, );
 
     // uint32_t max_num_aligned = (max_num + 31) & ~31;
     uint32_t unit_num = max_num / (sizeof(*this->buf) * 8);
-    this->buf = new uint32_t[unit_num];
+    this->buf = new (this->pool) uint32_t[unit_num];
 
     CHECK_PTR(this->buf, );
 

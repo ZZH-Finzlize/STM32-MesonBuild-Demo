@@ -3,7 +3,7 @@
 
 test_data_t *generate_test_data(size_t size)
 {
-    test_data_t *test_data = new (mem_pool_t::testcase_pool) test_data_t[size];
+    test_data_t *test_data = new (CONFIG_TEST_CASE_MEMPOOL) test_data_t[size];
 
     CHECK_PTR(test_data, NULL);
 

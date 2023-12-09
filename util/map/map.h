@@ -5,6 +5,7 @@
 #include "util/linked_list/linked_list.h"
 
 #include "util/hash/str_hash.h"
+#include "util/mem_mana/mem_mana.h"
 
 using std::uint32_t;
 
@@ -32,6 +33,7 @@ private:
     uint32_t mod_value;
     uint32_t mem_pool;
     str_hash_t hash;
+    mem_pool_t pool;
     item_list_t* items;
 
     static item_t* search_node(item_list_t* item_list, key_t key);
@@ -42,7 +44,7 @@ public:
     @param mod_value - should be a prime number to reduce hash conflict
     @param hash_cb - hash method
     */
-    map_t(uint32_t mod_value, str_hash_t hash_cb);
+    map_t(uint32_t mod_value, str_hash_t hash_cb, mem_pool_t pool);
 
     /**
      * @brief delete a map

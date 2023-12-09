@@ -20,29 +20,34 @@ void console_t::register_all_cmds(void)
     }
 }
 
-console_t::console_t(uint32_t buffer_size, out_t output_fn, const char* prefix)
+console_t::console_t(uint32_t buffer_size, out_t output_fn, const char* prefix,
+                     mem_pool_t pool)
+    : prefix(prefix),
+      cwd("~"),
+      buffer_size(buffer_size),
+      pool(pool),
+      current_state(state_normal),
+      last_ret_v(0),
+      write(output_fn),
+      command_table(nullptr),
+      rxbuf(nullptr),
+      txbuf(nullptr),
+      rx_idx(0),
+      tx_idx(0),
+      last_rx_idx(0)
 {
     RETURN_IF_NZERO(this->rxbuf, );
     RETURN_IF_NZERO(this->txbuf, );
     RETURN_IF_NZERO(this->command_table, );
 
-    this->command_table = new map_t(31, bkdr_hash);
+    this->command_table = new (this->pool) map_t(31, bkdr_hash, this->pool);
     CHECK_PTR(this->command_table, );
 
-    this->rxbuf = new char[buffer_size];
+    this->rxbuf = new (this->pool) char[buffer_size];
     CHECK_PTR_GOTO(this->rxbuf, rxbuf_err);
 
-    this->txbuf = new char[buffer_size];
+    this->txbuf = new (this->pool) char[buffer_size];
     CHECK_PTR_GOTO(this->txbuf, txbuf_err);
-
-    this->buffer_size = buffer_size;
-    this->prefix = prefix;
-    this->cwd = "~"; // for now, we don't support filesystem
-    this->write = output_fn;
-    this->rx_idx = 0;
-    this->tx_idx = 0;
-    this->last_rx_idx = 0;
-    this->current_state = state_normal;
 
     this->register_all_cmds();
 
@@ -157,7 +162,7 @@ int console_t::execute(void)
     arg_num = parse_arg_num(first_arg);
 
     if (0 != arg_num) {
-        arg_arr = new char*[arg_num];
+        arg_arr = new (this->pool) char*[arg_num];
         CHECK_PTR(arg_arr, -ENOMEM);
 
         char* cur_arg = first_arg;

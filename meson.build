@@ -87,15 +87,16 @@ test_cases_srcs = [
     'bitmap/bitmap_clear.cpp',
     'map/map_test_data.cpp',
     'map/map_basic_test.cpp',
-    # 'map/map_detete_clear_test.cpp',
-    # 'map/map_duplcate_key.cpp',
+    'map/map_detete_clear_test.cpp',
+    'map/map_duplcate_key.cpp',
 ]
 
 # start files
 start_file_fmt = 'startup_stm32f10x_@0@.cpp'
 start_file_srcs = [
-    'stack_trace/stack_trace.cpp',
     'init_calls.s',
+    'stack_trace/stack_trace.cpp',
+    'sys_funs.cpp',
 ]
 
 # applicaton src files
@@ -209,7 +210,6 @@ target_dict = {
             '-D__DEBUG',
             '-DVECT_TAB_SRAM',
             '-g3',
-            '-Wa,-g3'
         ],
         'cpp_args': [],
         'link_args': ['-Wl,-Map,memory_ram.map', '--specs=nano.specs'],

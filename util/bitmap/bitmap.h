@@ -5,6 +5,7 @@
 #include <cstring>
 #include "util/iterators.h"
 #include "util/arg_checkers.h"
+#include "util/mem_mana/mem_mana.h"
 
 
 #define BITMAP_CHECK_MAP(retv) CHECK_PTR(this->buf, retv)
@@ -13,6 +14,7 @@ class bitmap_t {
 private:
     uint32_t len;
     uint32_t* buf;
+    mem_pool_t pool;
 
 public:
     /**
@@ -21,7 +23,7 @@ public:
      * @param max_num - maximun value
      * @param pool - memory pool id
      */
-    bitmap_t(uint32_t max_num);
+    bitmap_t(uint32_t max_num, mem_pool_t pool);
 
     /**
      * @brief delete a bitmap
@@ -93,7 +95,7 @@ public:
      */
     inline bool check(uint32_t value)
     {
-        BITMAP_CHECK_MAP(0);
+        BITMAP_CHECK_MAP(false);
 
         uint32_t unit_index = value / (sizeof(*this->buf) * 8);
         uint32_t bit_index = value % (sizeof(*this->buf) * 8);
@@ -102,7 +104,7 @@ public:
         if (unit_index < this->len)
             return (this->buf[unit_index] & bit_mask) == bit_mask;
 
-        return 0;
+        return false;
     }
 
     /**
